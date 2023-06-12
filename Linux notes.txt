@@ -1,0 +1,116 @@
+Q: What is Linux?
+--> Linux is a computer Operating System which is capable of handling activities from multiple users at the same time.
+--> It is a set of programs that act as a link between the computer and the user.
+
+--> The computer programs that allocate the system resources and coordinate all the details of the computer's internals is called the operating system or the kernel.
+
+--> Users communicate with the kernel through a program known as the shell. The shell is a command line interpreter, it translates commands entered by the user and converts them into a language that is understood by the kernel.
+
+Q: What is Kernel?
+--> The kernel is the heart of the operating system. It interacts with the hardware and most of the tasks like memory management, task scheduling and file management.
+
+Q: What is a shell?
+--> The shell is the utility that processes your requests. When you type in a command at your terminal, the shell interprets the command and calls the program that you want.
+--> The shell uses standard syntax for all commands. C Shell, Bourne Shell, and Korn Shell are the most famous shells which are available with most of the Unix variants.
+
+Q: Permissions in chmod?
+
+Number Octal Permission Representation	                           Ref
+0	    No permission	                                             ---
+1	   Execute permission	                                       --x
+2	   Write permission	                                       -w-
+3	   Execute and write permission: 1 (execute) + 2 (write) = 3   -wx
+4	   Read permission                                             r--
+5	   Read and execute permission: 4 (read) + 1 (execute) = 5	   r-x
+6	   Read and write permission: 4 (read) + 2 (write) = 6	   rw-
+7	   All permissions: 4 (read) + 2 (write) + 1 (execute) = 7	   rwx
+
+
+
+Q: Escape Sequence & Description:
+--> \t = Current time, expressed as HH:MM:SS
+--> \d = Current date, expressed as Weekday Month Date
+--> \n = Newline
+--> \s = Current shell environment
+--> \W = Working directory
+--> \w = Full path of the working directory
+--> \u = Current user’s username
+--> \# = Command number of the current command. Increases when a new command is entered
+--> \$ = If the effective UID is 0 (that is, if you are logged in as root), end the prompt with the # character; otherwise, use the $ sign
+
+Q: Where we use grep command?
+--> The grep command searches a file or files for lines that have a certain pattern. 
+
+Q: Kernel Architecture in Linux?
+--> The kernel is a computer program that is the core of a computer’s operating system, with complete control over everything in the system. It manages the following resources of the Linux system –
+
+--> File management
+--> Process management
+--> I/O management
+--> Memory management
+--> Device management etc.
+
+Q: What is a shell?
+--> A shell is a special user program that provides an interface for users to use operating system services. 
+--> Shell accepts human-readable commands from the user and converts them into something which the kernel can understand. 
+--> It is a command language interpreter that executes commands read from input devices such as keyboards or from files. 
+--> The shell gets started when the user logs in or start the terminal.
+
+--> Shell is broadly classified into two categories:
+1. Command Line Shell
+2. Graphical Shell
+
+Q: What is the command line Shell?
+--> Shell can be accessed by a user using a command line interface. 
+--> A special program called Terminal in Linux/macOS or Command Prompt in Windows OS is provided to type in humanly readable commands such as “cat”, “ls” etc., and then it is executed.
+
+Q: What is Graphical Shell?
+--> Graphical shells provide means for manipulating programs based on the graphical user interface (GUI), by allowing for operations such as opening, closing, moving, and resizing windows, as well as switching focus between windows.
+--> Window OS or Ubuntu OS can be considered as a good example that provides GUI to users for interacting with programs.
+
+==> There are several shells available for Linux systems –
+
+--> BASH (Bourne Again SHell) – It is the most widely used shell in Linux systems. It is used as the default login shell in Linux systems and in macOS. It can also be installed on Windows OS.
+--> CSH (C SHell) – The C shell’s syntax and usage is very similar to the C programming language.
+--> KSH (Korn SHell) – The Korn Shell also was the base for the POSIX Shell standard specifications etc.
+
+
+
+Q: What is Shell Scripting?
+--> Usually shells are interactive that mean, they accept commands as input from users and execute them. ?
+However time we want to execute a bunch of commands routinely, so we have to type in all commands each time in the terminal.
+
+--> As the shell can also take commands as input from a file we can write these commands in a file and can execute them in a shell to avoid this repetitive work. 
+--> These files are called Shell Scripts or Shell Programs. 
+--> Shell scripts are similar to the batch file in MS-DOS. Each shell script is saved with a .sh file extension eg. my script.sh
+
+--> A shell script comprises the following elements –
+
+--> Shell Keywords – if, else, break etc.
+--> Shell commands – cd, ls, echo, pwd, touch etc.
+--> Functions
+--> Control flow – if..then..else, case and shell loops etc.
+
+
+Q: Why do we need shell scripts?
+--> There are many reasons to write shell scripts:
+
+--> To avoid repetitive work and automation
+--> System admins use shell scripting for routine backups
+--> System monitoring
+--> Adding new functionality to the shell etc.
+
+Q: Advantages of shell scripts?
+
+--> The command and syntax are exactly the same as those directly entered in command line, so programmer do not need to switch to entirely different syntax
+--> Writing shell scripts are much quicker
+--> Quick start
+--> Interactive debugging etc.
+
+Q: Disadvantages of shell scripts?
+-->Prone to costly errors, a single mistake can change the command which might be harmful
+--> Slow execution speed
+--> Design flaws within the language syntax or implementation
+--> Not well suited for a large and complex tasks
+--> Provide minimal data structure, unlike other scripting languages. etc
+

@@ -1,0 +1,8 @@
+Q: What is System Calls in Linux?
+--> A system call is a procedure that provides the interface between a process and the operating system. 
+--> It is the way by which a computer program requests a service from the kernel of the operating system.
+
+--> In Linux, making a system call involves transferring control from unprivileged user mode to privileged kernel mode; the details of this transfer vary from architecture to architecture. 
+--> The libraries take care of collecting the system-call arguments and, if necessary, arranging those arguments in the special form necessary to make the system call.
+
+

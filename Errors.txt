@@ -1,0 +1,5 @@
+1. implicit declaration of function 'sleep' 
+--> Include <unisrd.h> header file
+
+2. error: conglicting types for 'read'; have 'void *(void)*'
+--> Change the function name of read and write

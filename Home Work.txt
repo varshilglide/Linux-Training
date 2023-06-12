@@ -1,0 +1,3 @@
+--> Create 2 Threads and Display the data parallelly in Linux.
+
+--> Good Link to refer for thread (https://iq.opengenus.org/linux-thread-creation-data-passing-waiting/)

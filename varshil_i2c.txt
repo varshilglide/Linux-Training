@@ -1,0 +1,277 @@
+
+#include <stdio.h>
+#include "boards.h"
+#include "app_util_platform.h"
+#include "app_error.h"
+#include "nrf_drv_twi.h"
+#include "nrf_delay.h"
+
+#include "bme280.h"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "nrf_log_default_backends.h"
+#include <math.h>
+#ifdef NAN
+/* NAN is supported */
+#endif
+
+//static bme280_t bme280;
+/* TWI instance ID. */
+#define TWI_INSTANCE_ID     0
+
+/* Common addresses definition for temperature sensor. */
+#define LM75B_ADDR          (0x90U >> 1)
+
+#define LM75B_REG_TEMP      0x00U
+#define LM75B_REG_CONF      0x01U
+#define LM75B_REG_THYST     0x02U
+#define LM75B_REG_TOS       0x03U
+
+/* Common addresses for BME280 Sensor. */
+#define BME280_ADDR  UINT8_C(0x77)
+#define BME280_REG_TEMP  UINT8_C(0x88)
+#define BME280_REG_CONF  UINT8_C(0xF5)
+
+
+
+/* Mode for LM75B. */
+//#define NORMAL_MODE 0U
+
+/* Mode for BME280. */
+#define NORMAL_MODE UINT8_C(0x03)
+
+/* Indicates if operation on TWI has ended. */
+static volatile bool m_xfer_done = false;
+
+/* TWI instance. */
+static const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
+
+/* Buffer for samples read from temperature sensor. */
+//static uint8_t[3] m_sample;
+static uint8_t m_sample[3];
+
+struct bme280_dev *dev;
+
+struct bme280_uncomp_data *uncomp_data;
+struct bme280_data *comp_data;
+struct bme280_calib_data *calib_data;
+uint8_t sensor_comp;
+int8_t bme280_soft_reset(const struct bme280_dev *dev);
+int8_t bme280_compensate_data(uint8_t sensor_comp, const struct bme280_uncomp_data *uncomp_data,
+				     struct bme280_data *comp_data, struct bme280_calib_data *calib_data);
+ static void parse_temp_press_calib_data(const uint8_t *reg_data, struct bme280_dev *dev);
+ extern int8_t bme280_init(struct bme280_dev *dev);
+
+
+/**
+ * @brief Function for setting active mode on MMA7660 accelerometer.
+ */
+
+ 
+void BME280_set_mode(void)
+{
+    uint32_t data_xlsb;
+    uint32_t data_lsb;
+    uint32_t data_msb;
+    
+    int32_t var1;
+    int32_t var2;
+    int32_t temperature;
+    int32_t temperature_min = -4000;
+    int32_t temperature_max = 8500;
+    //int32_t t_fine;
+
+  //  struct bme280_uncomp_data s1;
+
+    
+    
+    ret_code_t err_code;
+    //uint8_t readBuf[2];
+    /* Writing to LM75B_REG_CONF "0" set temperature sensor in NORMAL mode. */
+    uint8_t reg[2] = {0xE0,0xB6};  //0xE0 is reset address and 0xB6 is a register for reset.
+    err_code = nrf_drv_twi_tx(&m_twi, BME280_ADDR, reg, sizeof(reg), true);
+    APP_ERROR_CHECK(err_code);
+    while (m_xfer_done == false);
+ 
+   // m_xfer_done = false;
+    //nrf_delay_ms(10);
+    nrf_delay_ms(100);
+    //NRF_LOG_INFO("Chip Id = %X",m_sample);
+    uint8_t reg1 = {0xD0};   //0xD0 is a chip id.
+    err_code = nrf_drv_twi_tx(&m_twi, BME280_ADDR, &reg1, sizeof(reg1), true);
+    APP_ERROR_CHECK(err_code);
+    while (m_xfer_done == false);
+    //nrf_delay_ms(10);
+     /* Read 1 byte from the specified address - skip 3 bits dedicated for fractional part of temperature. */
+    err_code = nrf_drv_twi_rx(&m_twi, BME280_ADDR, &m_sample, sizeof(m_sample));
+    APP_ERROR_CHECK(err_code);
+    //while (m_xfer_done == false);
+    nrf_delay_ms(10); 
+    
+    data_msb = (uint32_t)m_sample[3] << 12;
+    data_lsb = (uint32_t)m_sample[4] << 4;
+    data_xlsb = (uint32_t)m_sample[5] >> 4;
+    uncomp_data->temperature = data_msb | data_lsb | data_xlsb;
+  // temperature = data_msb | data_lsb | data_xlsb;
+   temperature = uncomp_data->temperature;
+   NRF_LOG_INFO("value of uncompdata temp = %d",temperature);
+   uint16_t dig_T1 = calib_data->dig_T1;
+
+   //int16_t dig_T2 = calib_data->dig_T2;
+   //int16_t dig_T3 = calib_data->dig_T3;
+   //parse_temp_press_calib_data(const uint8_t *reg_data, struct bme280_dev *dev);
+
+   /*
+   uint32_t dig_T1 = msb | lsb ;
+   NRF_LOG_INFO("value of msb = %d",msb);
+   NRF_LOG_INFO("value of lsb = %d",lsb);
+   NRF_LOG_INFO("digt1 = %d", dig_T1);
+   
+   */ 
+    //NRF_LOG_INFO("Raw Temperature = %d",temperature);
+    //NRF_LOG_INFO("Value of Dig1 = %d", dig_T1);
+    //s1.temperature = Temperature;
+
+    NRF_LOG_INFO("dig1 = %d",dig_T1);
+    var1 = (int32_t)((temperature / 8) - ((int32_t)calib_data->dig_T1 * 2));
+    var1 = (var1 * ((int32_t)calib_data->dig_T2)) / 2048;
+    NRF_LOG_INFO("Var1 = %d",var1);
+    var2 = (int32_t)((temperature / 16) - ((int32_t)calib_data->dig_T1));
+    var2 = (((var2 * var2) / 4096) * ((int32_t)calib_data->dig_T3)) / 16384;
+    NRF_LOG_INFO("Var2 = %d", var2);
+    calib_data->t_fine = var1 + var2;
+    NRF_LOG_INFO("Calib = %d", calib_data->t_fine);
+    temperature = (calib_data->t_fine * 5 + 128) / 256;
+    NRF_LOG_INFO("Real Temp : %d", temperature);
+    
+
+    if (temperature < temperature_min)
+		temperature= temperature_min;
+	else if (temperature > temperature_max)
+		temperature = temperature_max;
+
+    NRF_LOG_INFO("Temp in Int: = %d",temperature);
+    
+
+
+    ///* Writing to pointer byte. */
+    //reg[0] = BME280_REG_TEMP;
+    //m_xfer_done = false;
+    //err_code = nrf_drv_twi_tx(&m_twi, BME280_ADDR, reg, 1, false);
+    //APP_ERROR_CHECK(err_code);
+    //while (m_xfer_done == false);
+}
+/**
+ * @brief Function for handling data from temperature sensor.
+ *
+ * @param[in] temp          Temperature in Celsius degrees read from sensor.
+ */
+__STATIC_INLINE void data_handler(uint8_t temp)
+{
+    NRF_LOG_INFO("Temperature: %d Celsius degrees.", temp);
+}
+
+/** 
+ * @brief TWI events handler.
+ */
+void twi_handler(nrf_drv_twi_evt_t const * p_event, void * p_context)
+{
+    switch (p_event->type)
+    {
+        case NRF_DRV_TWI_EVT_DONE:
+            if (p_event->xfer_desc.type == NRF_DRV_TWI_XFER_RX)
+            {
+                data_handler(m_sample);
+            }
+            m_xfer_done = true;
+            break;
+        default:
+            break;
+    } 
+}
+
+/**
+ * @brief UART initialization.
+ */
+
+ 
+ 
+void twi_init (void)
+{
+    ret_code_t err_code;
+
+    const nrf_drv_twi_config_t twi_bme280_config = {
+       .scl                = ARDUINO_SCL_PIN,
+       .sda                = ARDUINO_SDA_PIN,
+       .frequency          = NRF_DRV_TWI_FREQ_100K,
+       .interrupt_priority = APP_IRQ_PRIORITY_HIGH,
+       .clear_bus_init     = false
+    };
+
+    err_code = nrf_drv_twi_init(&m_twi, &twi_bme280_config, twi_handler, NULL);
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_twi_enable(&m_twi);
+}
+
+
+/**
+ * @brief Function for reading data from temperature sensor.
+ */
+static void read_sensor_data()
+{
+    m_xfer_done = false;
+
+    /* Read 1 byte from the specified address - skip 3 bits dedicated for fractional part of temperature. */
+    ret_code_t err_code = nrf_drv_twi_rx(&m_twi, BME280_ADDR, &m_sample, sizeof(m_sample));
+    APP_ERROR_CHECK(err_code);
+}
+
+/**
+ * @brief Function for main application entry.
+ */
+int main(void) 
+   {
+   // dev -> chip_id = 0x60;
+   // dev -> dev_id = 0x77;
+    APP_ERROR_CHECK(NRF_LOG_INIT(NULL));
+    NRF_LOG_DEFAULT_BACKENDS_INIT();
+
+    NRF_LOG_INFO("\r\nTWI sensor example started.");
+    NRF_LOG_FLUSH();
+   // bme280_soft_reset(&dev);
+    twi_init();
+    bme280_init(&dev);
+  //  BME280_set_mode();
+     
+    //dev.chip_id = 0x60;
+ 
+    nrf_delay_ms(10);
+    
+    /*
+    while(get_calib_data(&dev))
+    {
+    nrf_delay_ms(10);
+    }
+    */
+    
+    //bme280_compensate_data(sensor_comp, &uncomp_data, &comp_data, &calib_data);
+
+    while (true)
+    {
+        nrf_delay_ms(500);
+
+
+        do
+        {
+            __WFE();
+        }while (m_xfer_done == false);
+
+        //read_sensor_data();
+        NRF_LOG_FLUSH();
+    }
+     
+}
+
+
+/** @} */
